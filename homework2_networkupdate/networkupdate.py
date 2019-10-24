@@ -1,84 +1,105 @@
 #宣告 紀錄表 , 計畫表 , 點(0->11))-->finish 
-current_path = [[7,2,9,10,-1,-1,-1,8,1,3,11,-1]]
-schedule_path = [4,6,1,2,5,3,11,-1,-1,-1,-1,-1]
+record_path = [[9,11,12,13,14,-1,-1,-1,-1,10,1,2,3,4,-1]]
+schedule_path = [5,4,8,7,2,6,3,1,14,-1,-1,-1,-1,-1 , -1]
 length = len(schedule_path)
 update_time = 0
 
-#combine
-def merge(updated_point , last_update_point):
-    ref_path = current_path[update_time][:]
-    print(f'ref_path {ref_path}')
-    print(f'update_point {updated_point}')
-    print(f'last_update_point {last_update_point}')
-    path = []
-    path.append(0)
-    next_point = ref_path[0]
-    #實線
-    while(next_point!=-1):
-        if (not next_point in updated_point[:-1]) and (not next_point in last_update_point):
-            path.append(next_point)
-        next_point = ref_path[next_point]
-    return path
-
-#(point1->point2->distance)  
-def update_distance(path, updated_point):
-    p_p_d = []
-    for i in path[:-1]:
-        dis = 1
-        last_point = i
-        next_point = schedule_path[i]
-        print(last_point , next_point)
-        while(next_point in updated_point):
-            dis = dis+1
-            next_point = schedule_path[next_point]
-        p_p_d.append((last_point , next_point , dis))
-    return p_p_d
-
-#查看哪些點不需要再被更新了-->finish
-def updated():
-    update_list = []
-    for i in range(length):
-        if current_path[update_time][i] == schedule_path[i]:
-            update_list.append(i)
-    return update_list 
-
-#找出最後一輪做更新的點(這裡稱black_point)-->finish
+#合併路線
+def merge(updated,updatetime):
+    ref = record_path[update_time][:]
+    new_path = []
+    new_schedule = []
+    point = 0
+    while(point != -1):
+        if not (point in updated):
+            new_path.append(point)
+        point = ref[point]
+    for i in new_path[:-1]:
+        point = schedule_path[i]
+        while(point in updated):
+            point = schedule_path[point]
+        #i and point's distance
+        for j , p in enumerate(new_path):
+            if i == p:
+                a = j
+            if point == p:
+                b = j
+        distance = b-a    
+        new_schedule.append((i , point , distance))
+    new_schedule.append((length-1 , -1 , 0))
+    return new_path , new_schedule
+#black_point->最後需要更新的點
 def black_point():
     black_point = []
     for i in range(length):
         if schedule_path[i]== -1 and i!=length-1:
             black_point.append(i)
     return black_point
-
 if __name__ == '__main__':
-    #最後更新的點-->finish
-    last_update_point = black_point()
-
-    #更新原本沒有做任何連線的點-->finish
-    new = []
+    #最後更新的點
+    updated = black_point()
+    #更新原本沒有接收封包的點
+    new = record_path[update_time][:]
     for i in range(length):
-        if current_path[0][i] == -1:
-            new.append(schedule_path[i])
-        else:
-            new.append(current_path[0][i])        
-    current_path.append(new)
+        if record_path[0][i] == -1 and i!=length-1:
+            new[i]=schedule_path[i]
+            updated.append(i)     
+    record_path.append(new)
     update_time += 1
-    
-    #合併後產生新的需要更新的陣列(更新過和最後需要更新的點不管)
-    updated_point = updated()
-    virtual_path = merge(updated_point = updated_point, last_update_point = last_update_point)
-    point_distance = update_distance(path = virtual_path , updated_point = updated_point)    
-    print(f'virtual_path {virtual_path}')
-    print(f'point_distance {point_distance}')
-    #奇數更新(shortcut phase)和偶數更新(prune phase)-->unfinish
-    
-    '''
-    #最後一輪更新-->finish
-    new = current_path[update_time][:]
-    print(new)
-    for i in last_update_point:
-        new[i] = schedule_path[i]
-    current_path.append(new)
-    #打印最後的schedules-->finish
-    print(current_path)
-    '''
+    #重複合併並更新的動作
+    while(1):
+        new_path , new_schedule = merge(updated , 0)
+        if len(new_path)==1:
+            break
+        update_index_list = []
+        update_index = -1
+        start = 0
+        while(1):
+            max = -1000
+            for i , (p1 , p2 , dis) in enumerate(new_schedule[start:]):
+                i = start+i
+                if dis>max:
+                    update_index = i
+                    max = dis
+            if max!=0:
+                update_index_list.append(update_index)
+                start += max
+            else:
+                break
+        #if i$2==0 even round
+        new = record_path[update_time][:]
+        for index in update_index_list:
+            point , _ , distance = new_schedule[index]
+            new[point] = schedule_path[point]
+            updated.append(point)
+        record_path.append(new)
+        update_time += 1 
+
+        #Select  other path that can be updated after selecting above path->unfinished.
+            # error
+            # error
+            # error
+        #else if i$2!+0 odd round
+
+        new = record_path[update_time][:]
+        for index in update_index_list:
+            max_distance = 0 
+            point , _ , distance = new_schedule[index]
+            if distance > max_distance:
+                max_distance = distance
+            for i in range(1 , distance):
+                point , _ , _ = new_schedule[index+i]
+                new[point] = schedule_path[point]
+                updated.append(point)
+            if max_distance > 1:    
+                record_path.append(new)
+                update_time += 1
+        if len(update_index_list)==0:
+            break   
+    new = record_path[update_time][:]
+    last_updated = black_point()
+    for point in last_updated:
+        new[point] = schedule_path[point]
+    record_path.append(new)
+    update_time+=1
+    print(record_path)
