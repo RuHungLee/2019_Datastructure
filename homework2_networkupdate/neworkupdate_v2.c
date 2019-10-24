@@ -132,7 +132,7 @@ int main(void){
                 for(j=0;j<cnt;j++){
                     int check_left = update_index_list[j];
                     int check_right = check_left+merge_schedule[check_left][2];
-                    if((!(right<=check_left)&&!(left>check_right))){c=False;}
+                    if((!(right<=check_left)&&!(left>=check_right))){c=False;}
                 }
                 if(c==True){update_index_list[cnt++] = i;}
             }
