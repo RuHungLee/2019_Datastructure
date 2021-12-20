@@ -1,8 +1,6 @@
 # Datastructure
 2019資料結構
 
-由於大部分筆記都是考前兩三天趕出來的，所以有錯誤的話還請見諒。
-
 FUNDAMENTALS OF DATASTRUCTURE第一章到第五章: 
 
 https://hackmd.io/ry1P107hT-ihh-JMXItHpQ
